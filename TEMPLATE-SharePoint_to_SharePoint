@@ -1,0 +1,74 @@
+<#*************************************************************************************************************
+
+SharePoint Online to SharePoint Online ShareGate Migration script - v1.0
+
+Instructions:
+1. Each function is a single migration job. Copy and paste the template function (renaming accordingly) 
+   according to how many migration jobs you'd like to queue up.
+    
+2. Change the '***' variables in each function according to your migration requirements 
+   (Source and Destination. Properties if necessary). Everything else is done automatically. 
+
+3. If different migration jobs require different properties to copy over, create seperate PropertyTemplate variables
+   and use these where necessary.
+
+*************************************************************************************************************#>
+
+
+Import-Module sharegate
+
+#Credentials
+$Credentials = Get-Credential
+
+#***Properties of Migration -> add / remove properties as needed
+$propertyTemplate = New-PropertyTemplate -AuthorsAndTimestamps -VersionHistory 
+
+$CurrentJob = 0
+$TotalJobs = 2
+
+Function Migration01
+{
+
+    #***Source site and List -> add source Site and Library here
+    $srcSite = Connect-Site -Url https://source.sharepoint.com/sites/source/ -Credential $Credentials
+    $srcList = Get-List -Site $srcSite -name Source_Library
+
+    #***Destination site and List -> add destination Site and Library here
+    $dstSite = Connect-Site -Url https://source.sharepoint.com/sites/source/ -Credential $Credentials
+    $dstList = Get-List -Site $dstSite -name Source_Library
+
+    #How many jobs its done
+    Set-Variable -scope 1 -Name "CurrentJob" -Value ($CurrentJob +1)
+
+    #Get the name of the source list
+    $Name = $srcList.Title
+
+    #Variable to copy content
+    $result = Copy-Content -SourceList $srcList -DestinationList $dstList -Template $propertyTemplate
+
+    $StartTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name is Migrating! [$StartTime] [Task $CurrentJob of $TotalJobs]" -ForegroundColor Yellow 
+
+    #Copying content
+    $result
+
+    #Exporting list of results to spreadsheet
+    Export-Report -CopyResult $result -Path C:\temp\$Name-MigrationReport.xlsx	
+
+    $FinishTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name has finished Migrating! [$FinishTime]" -ForegroundColor Green
+
+}
+
+
+
+#***Reference Functions here in the order you'd like the migration to run
+
+Migration01
+
+Migration02
+
