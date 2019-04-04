@@ -1,0 +1,90 @@
+Import-Module sharegate
+
+#Credentials
+$Credentials = Get-Credential
+
+#Properties of Migration
+$propertyTemplate = New-PropertyTemplate -AuthorsAndTimestamps -VersionHistory 
+
+$CurrentJob = 0
+$TotalJobs = 2
+
+Function TestLibrary
+{
+
+    #Source site and List
+    $srcSite = Connect-Site -Url https://comfortj.sharepoint.com/sites/Communication_Test/ -Credential $Credentials
+    $srcList = Get-List -Site $srcSite -name Test_Library02
+
+    #Destination site and List
+    $dstSite = Connect-Site -Url https://comfortj.sharepoint.com/sites/Team_Test/ -Credential $Credentials
+    $dstList = Get-List -Site $dstSite -name Test_Library01
+
+    #How many jobs its done
+    Set-Variable -scope 1 -Name "CurrentJob" -Value ($CurrentJob +1)
+
+    #Get the name of the source list
+    $Name = $srcList.Title
+
+    #Variable to copy content
+    $result = Copy-Content -SourceList $srcList -DestinationList $dstList -Template $propertyTemplate
+
+    $StartTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name is Migrating! [$StartTime] [Task $CurrentJob of $TotalJobs]" -ForegroundColor Yellow 
+
+    #Copying content
+    $result
+
+    #Exporting list of results to spreadsheet
+    Export-Report -CopyResult $result -Path C:\temp\$Name-MigrationReport.xlsx	
+
+    $FinishTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name has finished Migrating! [$FinishTime]" -ForegroundColor Green
+
+}
+
+Function Documents
+{
+
+    #Source site and List
+    $srcSite = Connect-Site -Url https://comfortj.sharepoint.com/sites/Communication_Test/ -Credential $Credentials
+    $srcList = Get-List -Site $srcSite -name Documents02
+
+    #Destination site and List
+    $dstSite = Connect-Site -Url https://comfortj.sharepoint.com/sites/Team_Test/ -Credential $Credentials
+    $dstList = Get-List -Site $dstSite -name Documents01
+
+    #How many jobs its done
+    Set-Variable -scope 1 -Name "CurrentJob" -Value ($CurrentJob +1)
+
+    #Get the name of the source list
+    $Name = $srcList.Title
+
+    #Variable to copy content
+    $result = Copy-Content -SourceList $srcList -DestinationList $dstList -Template $propertyTemplate
+
+    $StartTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name is Migrating! [$StartTime] [Task $CurrentJob of $TotalJobs]" -ForegroundColor Yellow
+
+    #Copying content
+    $result
+
+    #Exporting list of results to spreadsheet
+    Export-Report -CopyResult $result -Path C:\temp\$Name-MigrationReport.xlsx	
+
+    $FinishTime = Get-Date -format g
+
+    #Updating of status
+    Write-Host "$Name has finished Migrating! [$FinishTime]" -ForegroundColor Green
+}
+
+TestLibrary
+
+Documents
+
